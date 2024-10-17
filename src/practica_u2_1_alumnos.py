@@ -35,7 +35,7 @@ def mostrar_mensaje_error():
 
 def procesar_compra(saldo: float, importe: float) -> float:
     """
-    Procesa una operación de compra y actualiza el saldo restando el importe.
+    Procesa una operación de compra y retorna el saldo actualizado restando el importe.
 
     Args:
         saldo (float): El saldo actual.
@@ -48,7 +48,7 @@ def procesar_compra(saldo: float, importe: float) -> float:
 
 def procesar_venta(saldo: float, importe: float) -> float:
     """
-    Procesa una operación de venta y actualiza el saldo sumando el importe.
+    Procesa una operación de venta y retorna el saldo actualizado sumando el importe.
 
     Args:
         saldo (float): El saldo actual.
@@ -72,16 +72,22 @@ def mostrar_saldo(saldo: float, cont_compras: int, cont_ventas: int):
 
 def resetear_saldo(saldo: float, cont_compras: int, cont_ventas: int) -> tuple[float, int, int]:
     """
-    Resetea el saldo y las operaciones realizadas, mostrando antes el saldo anterior.
+    Muestra el saldo anterior y retorna los valores a 0 de saldo, compras y ventas para 
+    resetearlos al ser reasignados.
 
-    Args:
-        saldo (float): El saldo actual.
-        cont_compras (int): Número total de compras realizadas.
-        cont_ventas (int): Número total de ventas realizadas.
+    Se utiliza simplemente porque no hemos llegado a las estructuras de datos aún. 
+    
+    Podríamos haberlo realizado directamente en el main:
+    saldo = 0
+    cont_compras = 0
+    cont_ventas = 0
 
     Returns:
-        tuple[float, int, int]: El nuevo saldo (0), número de compras (0) y número de ventas (0) después del reinicio.
+        tuple[float, int, int]: El nuevo saldo (0), número de compras (0) y número de ventas (0) 
+        después del reinicio.
     """
+    print()
+    return 0, 0, 0
 
 
 def recuperar_comando_e_importe(linea: str) -> tuple[str, str]:
