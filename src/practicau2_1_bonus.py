@@ -1,6 +1,20 @@
+import os
 
-COMANDOS = ["compra", "venta", "saldo", "reset", "deshacer", "fin"]
+
+COMANDOS = ("compra", "venta", "saldo", "reset", "deshacer", "limpiar", "fin")
 MENSAJE_ERROR = "*ERROR* Entrada inválida"
+
+
+def limpiar_pantalla():
+    """
+    Limpia la consola según el sistema operativo.
+
+    En sistemas Windows utiliza el comando 'cls', en Linux o macOS utiliza 'clear'.
+    """
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        os.system('clear')
 
 
 def comprobar_importe(valor: str) -> bool:
@@ -45,7 +59,7 @@ def mostrar_mensaje_error():
 
 def procesar_compra(saldo: float, importe: float) -> float:
     """
-    Procesa una operación de compra y actualiza el saldo restando el importe.
+    Procesa una operación de compra y retorna el saldo actualizado restando el importe.
 
     Args:
         saldo (float): El saldo actual.
@@ -59,7 +73,7 @@ def procesar_compra(saldo: float, importe: float) -> float:
 
 def procesar_venta(saldo: float, importe: float) -> float:
     """
-    Procesa una operación de venta y actualiza el saldo sumando el importe.
+    Procesa una operación de venta y retorna el saldo actualizado sumando el importe.
 
     Args:
         saldo (float): El saldo actual.
@@ -85,12 +99,14 @@ def mostrar_saldo(saldo: float, cont_compras: int, cont_ventas: int):
 
 def resetear_saldo(saldo: float, cont_compras: int, cont_ventas: int) -> tuple[float, int, int]:
     """
-    Resetea el saldo y las operaciones realizadas, mostrando los valores anteriores.
+    Retorna el saldo y las operaciones realizadas, mostrando antes el saldo anterior.
 
-    Args:
-        saldo (float): El saldo actual.
-        cont_compras (int): Número total de compras realizadas.
-        cont_ventas (int): Número total de ventas realizadas.
+    Se utiliza simplemente porque no hemos llegado a las estructuras de datos aún. 
+    
+    Podríamos haberlo realizado directamente en el main:
+    saldo = 0
+    cont_compras = 0
+    cont_ventas = 0
 
     Returns:
         tuple[float, int, int]: El nuevo saldo (0), número de compras (0) y número de ventas (0) después del reinicio.
@@ -129,7 +145,7 @@ def recuperar_comando_e_importe(linea: str) -> tuple[str, str]:
         return None, None
 
 
-def guardar_valores(saldo, compras, ventas) -> tuple:
+def guardar_valores(saldo, compras, ventas) -> tuple[float, int, int]:
     """
     Usar la función para agrupar las actualizaciones de saldo, compras y ventas. 
     
@@ -187,40 +203,9 @@ def main():
         linea = input("> ").strip().lower()
         comando, importe = recuperar_comando_e_importe(linea)
 
-        if comando is None or not comprobar_comando(comando):
-            mostrar_mensaje_error()
+        importe_valido = importe is not None and comprobar_importe(importe)
 
-        elif comando in ("saldo", "reset", "deshacer", "fin") and importe is not None:
-            mostrar_mensaje_error()
-
-        elif comando == "saldo":
-            mostrar_saldo(saldo, cont_compras, cont_ventas)
-
-        elif comando == "reset":
-            # Guardar el estado previo para deshacer
-            ultimo_saldo, ultimo_cont_compras, ultimo_cont_ventas = guardar_valores(saldo, cont_compras, cont_ventas)
-            # Es lo mismo que hacer esto...
-            # ultimo_saldo = saldo
-            # ultimo_cont_compras = cont_compras
-            # ultimo_cont_ventas = cont_ventas
-
-            saldo, cont_compras, cont_ventas = resetear_saldo(saldo, cont_compras, cont_ventas)
-            
-        elif comando == "fin":
-            encuentra_fin = True
-
-        elif comando == "deshacer":
-            saldo, cont_compras, cont_ventas = guardar_valores(ultimo_saldo, ultimo_cont_compras, ultimo_cont_ventas)
-            # Es lo mismo que hacer esto...
-            # saldo = ultimo_saldo
-            # cont_compras = ultimo_cont_compras
-            # cont_ventas = ultimo_cont_ventas
-            print("Última operación deshecha.")
-
-        elif importe is None or not comprobar_importe(importe):
-            mostrar_mensaje_error()
-
-        else:
+        if comando in ("compra", "venta") and importe_valido:
             # Guardar el estado previo para deshacer
             ultimo_saldo, ultimo_cont_compras, ultimo_cont_ventas = guardar_valores(saldo, cont_compras, cont_ventas)
             # Es lo mismo que hacer esto...
@@ -229,12 +214,51 @@ def main():
             # ultimo_cont_ventas = cont_ventas
 
             importe = float(importe)
+
             if comando == "compra":
                 saldo = procesar_compra(saldo, importe)
                 cont_compras += 1
+
             elif comando == "venta":
                 saldo = procesar_venta(saldo, importe)
                 cont_ventas += 1
+
+        elif comando in ("saldo", "reset", "deshacer", "limpiar", "fin") and importe is None:
+
+            if comando == "saldo":
+                mostrar_saldo(saldo, cont_compras, cont_ventas)
+
+            elif comando == "reset":
+                # Guardar el estado previo para deshacer
+                ultimo_saldo, ultimo_cont_compras, ultimo_cont_ventas = guardar_valores(saldo, cont_compras, cont_ventas)
+                # Es lo mismo que hacer esto...
+                # ultimo_saldo = saldo
+                # ultimo_cont_compras = cont_compras
+                # ultimo_cont_ventas = cont_ventas
+
+                saldo, cont_compras, cont_ventas = resetear_saldo(saldo, cont_compras, cont_ventas)
+                # Es lo mismo que hacer esto...
+                # print(f"Saldo anterior = {saldo:.2f} ({cont_compras} compras y {cont_ventas} ventas)")
+                # saldo = 0
+                # cont_compras = 0
+                # cont_ventas = 0
+
+            elif comando == "deshacer":
+                saldo, cont_compras, cont_ventas = guardar_valores(ultimo_saldo, ultimo_cont_compras, ultimo_cont_ventas)
+                # Es lo mismo que hacer esto...
+                # saldo = ultimo_saldo
+                # cont_compras = ultimo_cont_compras
+                # cont_ventas = ultimo_cont_ventas
+                print("Última operación deshecha.")
+
+            elif comando == "limpiar":
+                limpiar_pantalla()
+
+            else:
+                encuentra_fin = True
+
+        else:
+            mostrar_mensaje_error()
 
 
             
