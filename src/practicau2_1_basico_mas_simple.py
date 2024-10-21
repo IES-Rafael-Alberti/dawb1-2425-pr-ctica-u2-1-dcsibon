@@ -1,6 +1,20 @@
+import os
 
-COMANDOS = ["compra", "venta", "saldo", "reset", "fin"]
+
+COMANDOS = ("compra", "venta", "saldo", "reset", "limpiar", "fin")
 MENSAJE_ERROR = "*ERROR* Entrada inválida"
+
+
+def limpiar_pantalla():
+    """
+    Limpia la consola según el sistema operativo.
+
+    En sistemas Windows utiliza el comando 'cls', en Linux o macOS utiliza 'clear'.
+    """
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        os.system('clear')
 
 
 def comprobar_importe(valor: str) -> bool:
@@ -13,6 +27,14 @@ def comprobar_importe(valor: str) -> bool:
     Returns:
         bool: True si el valor es un número válido (positivo, negativo o con punto decimal), False en caso contrario.
     """
+    if valor.startswith("-"):
+        valor = valor[1:]
+
+    if valor.count(".") > 1:
+        return False
+
+    valor = valor.replace(".", "")
+    return valor.isdigit()
 
 
 def comprobar_comando(comando: str) -> bool:
@@ -25,17 +47,19 @@ def comprobar_comando(comando: str) -> bool:
     Returns:
         bool: True si el comando está en la lista de comandos válidos, False en caso contrario.
     """
+    return comando in COMANDOS
 
 
 def mostrar_mensaje_error():
     """
     Muestra el mensaje de error por entrada inválida.
     """
+    print(MENSAJE_ERROR)
 
 
 def procesar_compra(saldo: float, importe: float) -> float:
     """
-    Procesa una operación de compra y actualiza el saldo restando el importe.
+    Procesa una operación de compra y retorna el saldo actualizado restando el importe.
 
     Args:
         saldo (float): El saldo actual.
@@ -44,11 +68,12 @@ def procesar_compra(saldo: float, importe: float) -> float:
     Returns:
         float: El saldo actualizado después de realizar la compra.
     """
+    return saldo - importe
 
 
 def procesar_venta(saldo: float, importe: float) -> float:
     """
-    Procesa una operación de venta y actualiza el saldo sumando el importe.
+    Procesa una operación de venta y retorna el saldo actualizado sumando el importe.
 
     Args:
         saldo (float): El saldo actual.
@@ -57,6 +82,7 @@ def procesar_venta(saldo: float, importe: float) -> float:
     Returns:
         float: El saldo actualizado después de realizar la venta.
     """
+    return saldo + importe
 
 
 def mostrar_saldo(saldo: float, cont_compras: int, cont_ventas: int):
@@ -68,20 +94,27 @@ def mostrar_saldo(saldo: float, cont_compras: int, cont_ventas: int):
         cont_compras (int): Número total de compras realizadas.
         cont_ventas (int): Número total de ventas realizadas.
     """
+    print(f"Saldo actual = {saldo:.2f} ({cont_compras} compras y {cont_ventas} ventas)")
 
 
 def resetear_saldo(saldo: float, cont_compras: int, cont_ventas: int) -> tuple[float, int, int]:
     """
-    Resetea el saldo y las operaciones realizadas, mostrando antes el saldo anterior.
+    Muestra el saldo anterior y retorna los valores a 0 de saldo, compras y ventas para 
+    resetearlos al ser reasignados.
 
-    Args:
-        saldo (float): El saldo actual.
-        cont_compras (int): Número total de compras realizadas.
-        cont_ventas (int): Número total de ventas realizadas.
+    Se utiliza simplemente porque no hemos llegado a las estructuras de datos aún. 
+    
+    Podríamos haberlo realizado directamente en el main:
+    saldo = 0
+    cont_compras = 0
+    cont_ventas = 0
 
     Returns:
-        tuple[float, int, int]: El nuevo saldo (0), número de compras (0) y número de ventas (0) después del reinicio.
+        tuple[float, int, int]: El nuevo saldo (0), número de compras (0) y número de ventas (0) 
+        después del reinicio.
     """
+    print(f"Saldo anterior = {saldo:.2f} ({cont_compras} compras y {cont_ventas} ventas)")
+    return 0, 0, 0
 
 
 def recuperar_comando_e_importe(linea: str) -> tuple[str, str]:
@@ -132,49 +165,59 @@ def main():
     Ejemplos:
         > compra 100
         > venta 50
-        > venta
-        *ERROR* Entrada inválida
-        > venta cincuenta euros
-        *ERROR* Entrada inválida
-        > compra 50€
-        *ERROR* Entrada inválida
-        > saldo 666
-        *ERROR* Entrada inválida
         > saldo
         Saldo actual = -50.00 (1 compras y 1 ventas)
         > venta 200
         > reset
         Saldo anterior = 150.00 (1 compras y 2 ventas)
-        > saldo
+        >
         Saldo actual = 0.00 (0 compras y 0 ventas)
         > fin
     """
+    encuentra_fin = False
     cont_compras = 0
     cont_ventas = 0
-    saldo = 0
+    saldo = 0 
 
     while not encuentra_fin:
-
+        linea = input("> ").strip().lower()
         comando, importe = recuperar_comando_e_importe(linea)
 
-        if comando is None or not comprobar_comando(comando):
-            mostrar_mensaje_error()
-        elif comando in ("saldo", "reset", "fin") and importe is not None:
-            
-        elif comando == "saldo":
-            
-        elif comando == "reset":
-            
-        elif comando == "fin":
-            
-        elif importe is None or not comprobar_importe(importe):
-            
-        else:
+        importe_valido = importe is not None and comprobar_importe(importe)
+
+        if comando in ("compra", "venta") and importe_valido:
+
+            importe = float(importe)
 
             if comando == "compra":
+                saldo = procesar_compra(saldo, importe)
+                cont_compras += 1
 
             elif comando == "venta":
+                saldo = procesar_venta(saldo, importe)
+                cont_ventas += 1
 
+        elif comando in ("saldo", "reset", "fin", "limpiar") and importe is None:
+
+            if comando == "saldo":
+                mostrar_saldo(saldo, cont_compras, cont_ventas)
+
+            elif comando == "reset":
+                saldo, cont_compras, cont_ventas = resetear_saldo(saldo, cont_compras, cont_ventas)
+                # Es lo mismo que hacer esto...
+                # print(f"Saldo anterior = {saldo:.2f} ({cont_compras} compras y {cont_ventas} ventas)")
+                # saldo = 0
+                # cont_compras = 0
+                # cont_ventas = 0
+
+            elif comando == "limpiar":
+                limpiar_pantalla()
+
+            else:
+                encuentra_fin = True
+
+        else:
+            mostrar_mensaje_error()
 
             
 if __name__ == "__main__":
